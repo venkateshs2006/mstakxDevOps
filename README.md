@@ -1,4 +1,4 @@
-Follow Below Setups to implement MultiMaster 
+Follow Below steps to implement MultiMaster 
 =============================================
 
 <h3>Installing cfssl</h3>
