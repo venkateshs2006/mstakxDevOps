@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: gcr.io/google-samples/gb-frontend:v4
+        image: 192.168.0.245:5000/gb-frontend:v4
         resources:
           requests:
             cpu: 100m
@@ -48,3 +48,26 @@ spec:
           # value: env
         ports:
         - containerPort: 80
+---
+# autoscaling.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: guestbook
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: guestbook
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageValue: 500000000 # 0.5GB
