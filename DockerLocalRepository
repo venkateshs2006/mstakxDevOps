@@ -1,0 +1,41 @@
+Create Local Respository 
+========================
+
+Run below command in Master 
+===========================
+
+1. $ mkdir -p certs
+2. $ ifconfig
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key -x509 -days 365 -out certs/domain.crt
+3. $ docker secret create domain.crt certs/domain.crt
+4. $ docker secret create domain.key certs/domain.key
+5 docker run -d -p 5000:5000 --restart=always --name registry -v $PWD/docker_reg_certs:/certs -v $PWD/docker_reg_auth:/auth -v /reg:/var/lib/registry -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -e REGISTRY_AUTH=D0ck36@123 registry:2
+5. $ docker swarm init
+
+
+Client Configuration 
+
+1. add below config in worker machine  (For Insecure Accss of our repository)
+
+		File: /etc/docker/daemon.json                                                                                                              
+
+		{
+		  "insecure-registries" : ["192.168.0.245:5000"]
+		}
+
+3. sudo systemctl restart docker
+
+4. sudo  docker swarm join --token SWMTKN-1-16r8i1s6b04zapp9ejhfhg02xnumrq8yu9quy40j75kaqn8ubr-1dhcaj80gpsvyndkjzvx70a1v 192.168.0.245:2377
+
+5. To test use  sudo docker pull 192.168.0.245:5000/postgres_ssl
+
+
+Secure Access
+==============
+docker login -u admin -p D0ck36@123 192.168.0.245:5000
+
+sudo  docker swarm join --token SWMTKN-1-16r8i1s6b04zapp9ejhfhg02xnumrq8yu9quy40j75kaqn8ubr-1dhcaj80gpsvyndkjzvx70a1v 192.168.0.245:2377
+
+curl -u admin:D0ck36@123 -v -X GET https://192.168.0.245:5000/v2/demo
+
+Restart all client machine machines
