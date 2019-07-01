@@ -35,13 +35,37 @@ spec:
     spec:
       containers:
       - name: master
-        image: k8s.gcr.io/redis:e2e  # or just image: redis
+        image: 192.168.0.245:5000/redis:e2e  # or just image: redis
         resources:
           requests:
             cpu: 100m
             memory: 100Mi
         ports:
         - containerPort: 6379
+---
+# autoscaling.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-master
+  namespace: stage
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: redis-master
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageValue: 500000000
+
 ---
 apiVersion: v1
 kind: Service
@@ -79,7 +103,7 @@ spec:
     spec:
       containers:
       - name: slave
-        image: gcr.io/google_samples/gb-redisslave:v1
+        image: 192.168.0.245:5000/gb-redisslave:v1
         resources:
           requests:
             cpu: 100m
@@ -94,6 +118,31 @@ spec:
           # value: env
         ports:
         - containerPort: 6379
+
+---
+# autoscaling.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-slave
+  namespace: stage
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: redis-slave
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageValue: 500000000
+
 ---
 apiVersion: v1
 kind: Service
@@ -130,7 +179,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: gcr.io/google-samples/gb-frontend:v4
+        image: 192.168.0.245:5000/gb-frontend:v4
         resources:
           requests:
             cpu: 100m
@@ -145,3 +194,26 @@ spec:
           # value: env
         ports:
         - containerPort: 80
+---
+# autoscaling.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: guestbook
+  namespace: stage
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: guestbook
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageValue: 500000000
